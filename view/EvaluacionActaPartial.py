@@ -9,8 +9,9 @@ from controller.ControladorPDF import ControladorPdf
 
 def agregar_acta(st, controlador):
     st.title("Generación De Actas")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col9 = st.columns(4)
     col5, col6, col7, col8 = st.columns(4)
+    col10, col11 = st.columns(2)
     # Objeto que modelará el formulario
     info_acta_obj = InfoActa(controlador.criterios)
     info_acta_obj.fecha_acta = datetime.today().strftime('%Y-%m-%d')
@@ -21,13 +22,16 @@ def agregar_acta(st, controlador):
     with col3:
         info_acta_obj.tipo_trabajo = st.selectbox('Tipo', ('Aplicado', 'Investigación'))
     with col5:
-        info_acta_obj.director = st.text_input("Director")
+        info_acta_obj.director = st.selectbox('Director', controlador.mostrarDirectores())
     with col6:
         info_acta_obj.codirector = st.text_input("Codirector", "N.A")
     with col7:
         info_acta_obj.jurado1 = st.text_input("Jurado #1")
     with col8:
         info_acta_obj.jurado2 = st.text_input("Jurado #2")
+    with col9:
+        info_acta_obj.fecha_presentacion = st.date_input("Ingrese fecha de la presentación")
+
     enviado_btn = st.button("Enviar")
 
     # Cuando se oprime el botón se agrega a la lista
@@ -56,7 +60,7 @@ def ver_historico_acta(st, controlador):
         numero += 1
         col1, col2, col3, col4 = st.columns(4)
         col5, col6, col7, col8 = st.columns(4)
-        col9, col10 = st.columns(2)
+        col9, col10, col11 = st.columns(3)
         with col1:
             st.write("**Autor**")
             st.write(acta.autor)
@@ -95,6 +99,9 @@ def ver_historico_acta(st, controlador):
                 st.write("Acta pendiente por calificar")
             else:
                 st.write("Acta calificada")
+        with col11:
+            st.write("**Fecha de la presentación**")
+            st.write(acta.fecha_presentacion)
 
 
 def evaluar_criterios(st, controlador):
