@@ -13,6 +13,12 @@ class Controlador:
     def __init__(self) -> None:
         super().__init__()
         self.actas = []
+        self.numsProyectoAplicado = 0
+        self.numsProyectoInves = 0
+        self.cantJuradosExt = 0
+        self.cantJuradosInt = 0
+        self.proyectosMayor48 = 0
+        self.proyectosMenor48 = 0
 
         # Inicializa los criterios de evaluacion de bse
         self.__inicializar_criterios()
@@ -32,7 +38,8 @@ class Controlador:
                           Criterio("Manejo y procesamiento de la información y bibliografía", 0.1),
                           Criterio("Calidad y presentación del documento escrito", 0.075),
                           Criterio("Presentación oral", 0.075),
-                          Criterio("Aportación a la sociedad", 0.05)]
+                          Criterio("Aportación a la sociedad", 0.05),
+                          Criterio("Observaciones adicionales y restricciones a la nota final", 0)]
 
     def mostrar_de_numero_a_palabras(self, numero):
         """

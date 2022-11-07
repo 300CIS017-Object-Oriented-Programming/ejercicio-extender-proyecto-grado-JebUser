@@ -2,16 +2,19 @@ import os
 
 from fpdf import FPDF
 
+
 class ControladorPdf:
 
     # Constructor
     def __init__(self) -> None:
         super().__init__()
+        self.pdf_nombre = None
         self.pdf = FPDF()
 
     def exportar_acta(self, st, controlador, acta_seleccionada):
         """
          Exporta el acta en self.pdf
+        :param st:
         :param controlador:
         :param acta_seleccionada:
         :return:
@@ -29,17 +32,19 @@ class ControladorPdf:
                 flag = True
                 self.pdf.multi_cell(185, 6, txt=f"Trabajo de grado denominado:     {acta.nombre_trabajo}", align='L')
                 self.pdf.cell(200, 10, txt=f"Autor:                                {acta.autor}", ln=1, align='L')
-               #self.pdf.cell(200, 10, txt=f"Fecha de presentación:                {acta.fecha_presentacion}", ln=1, align='L')
-                self.pdf.cell(200, 10, txt=f"Fecha/Periodo:                  {acta.fecha_acta} Tesis II", ln=1, align='L')
+                self.pdf.cell(200, 10, txt=f"Fecha de presentación:                {acta.fecha_presentacion}", ln=1, align='L')
+                self.pdf.cell(200, 10, txt=f"Fecha/Periodo:                  {acta.fecha_acta} Tesis II", ln=1,
+                              align='L')
                 self.pdf.cell(200, 10, txt=f"Director:                            {acta.director}", ln=1, align='L')
                 self.pdf.cell(200, 10, txt=f"Codirector:                        {acta.codirector}", ln=1, align='L')
                 self.pdf.cell(200, 10, txt=f"Nombre Del Trabajo:        {acta.nombre_trabajo}", ln=1, align='L')
                 self.pdf.cell(200, 10, txt=f"Tipo De Trabajo:               {acta.tipo_trabajo}", ln=1, align='L')
                 self.pdf.cell(200, 10, txt=f"Jurado 1:                            {acta.jurado1}", ln=1, align='L')
+                self.pdf.cell(200, 10, txt=f"Tipo:                                {acta.jurado1EST}", ln=1, align='L')
                 self.pdf.cell(200, 10, txt=f"Jurado 2:                            {acta.jurado2}", ln=1, align='L')
-                self.pdf.multi_cell(185, 6,
-                               txt="En atención al desarrollo de este Trabajo de Grado y al documento y sustentación que presentó el(la) autor(a), los Jurados damos las siguientes calificaciones parciales y observaciones (los criterios a evaluar y sus ponderaciones se estipulan en el artículo 7.1 de las Directrices para Trabajo de Grado de Maestría):",
-                               align='L')
+                self.pdf.cell(200, 10, txt=f"Tipo:                            {acta.jurado2EST}", ln=1, align='L')
+                self.pdf.multi_cell(185, 6,txt="En atención al desarrollo de este Trabajo de Grado y al documento y sustentación que presentó el(la) autor(a), los Jurados damos las siguientes calificaciones parciales y observaciones (los criterios a evaluar y sus ponderaciones se estipulan en el artículo 7.1 de las Directrices para Trabajo de Grado de Maestría):",
+                                    align='L')
                 for criterio in acta.criterios:
                     self.pdf.set_font("times", 'B', size=12)
                     self.pdf.multi_cell(185, 10, txt=f"{numero}. {criterio.descripcion}", align='L')
@@ -48,47 +53,40 @@ class ControladorPdf:
                     self.pdf.cell(100, 7, txt=f"Ponderación: {criterio.porcentaje * 100}%", ln=1, align='L')
                     self.pdf.multi_cell(185, 7, txt=f"Observación: {criterio.observacion}", align='L')
                     self.pdf.multi_cell(185, 5,
-                                   txt="_____________________________________________________________________________________",
-                                   align='L')
+                                        txt="_____________________________________________________________________________________",
+                                        align='L')
                     self.pdf.multi_cell(185, 5,
-                                   txt="_____________________________________________________________________________________",
-                                   align='L')
+                                        txt="_____________________________________________________________________________________",
+                                        align='L')
                     numero += 1
                 self.pdf.set_font("times", 'B', size=12)
                 self.pdf.multi_cell(185, 10,
-                               txt=f"Como resultado de estas calificaciones parciales y sus ponderaciones, la calificación del Trabajo de Grado es: {round(acta.nota_final, 2)}",
-                               align='L')
+                                    txt=f"Como resultado de estas calificaciones parciales y sus ponderaciones, la calificación del Trabajo de Grado es: {round(acta.nota_final, 2)}",
+                                    align='L')
                 self.pdf.cell(100, 10, txt=f"{round(acta.nota_final, 2)}", ln=0, align='C')
-                self.pdf.cell(30, 10, txt=f"{controlador.mostrar_de_numero_a_palabras(acta.nota_final)}", ln=1, align='C')
+                self.pdf.cell(30, 10, txt=f"{controlador.mostrar_de_numero_a_palabras(acta.nota_final)}", ln=1,
+                              align='C')
                 self.pdf.cell(95, 10, txt="Números", ln=0, align='C')
                 self.pdf.cell(35, 10, txt="Letras", ln=1, align='C')
                 self.pdf.set_font("times", size=12)
-                self.pdf.multi_cell(185, 5, txt="Observaciones adicionales: ", align='L')
-                self.pdf.multi_cell(185, 5,
-                               txt="_____________________________________________________________________________________",
-                               align='L')
-                self.pdf.multi_cell(185, 5,
-                               txt="_____________________________________________________________________________________",
-                               align='L')
-                self.pdf.multi_cell(185, 5,
-                               txt="_____________________________________________________________________________________",
-                               align='L')
+                for criterio in acta.criterios:
+                    self.pdf.multi_cell(185, 5, txt=f"Observaciones adicionales y restricciones:         {criterio.observacion_adicional}", align='L')
                 self.pdf.multi_cell(185, 10,
-                               txt="La calificación final queda sujeta a que se implementen las siguientes correcciones: Que se revise el abstract.",
-                               align="L")
+                                    txt="La calificación final queda sujeta a que se implementen las siguientes correcciones: Que se revise el abstract.",
+                                    align="L")
                 self.pdf.multi_cell(185, 5,
-                               txt="_____________________________________________________________________________________",
-                               align='L')
+                                    txt="_____________________________________________________________________________________",
+                                    align='L')
                 self.pdf.multi_cell(185, 5,
-                               txt="_____________________________________________________________________________________",
-                               align='L')
+                                    txt="_____________________________________________________________________________________",
+                                    align='L')
                 self.pdf.multi_cell(185, 5,
-                               txt="_____________________________________________________________________________________",
-                               align='L')
+                                    txt="_____________________________________________________________________________________",
+                                    align='L')
                 self.pdf.cell(200, 30, txt="________________________________   ________________________________", ln=2,
-                         align='C')
+                              align='C')
                 self.pdf.cell(200, 5, txt=f"{acta.jurado1}                                     {acta.jurado2}   ", ln=2,
-                         align='C')
+                              align='C')
 
         if [acta.autor for acta in controlador.actas if acta.estado and flag]:
             self.pdf_nombre = f"outputs/Acta_{acta_seleccionada}.self.pdf"

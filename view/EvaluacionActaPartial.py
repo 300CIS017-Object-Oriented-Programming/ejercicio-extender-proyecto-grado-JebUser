@@ -1,8 +1,8 @@
-import os
-
 from model.InfoActa import InfoActa
 from datetime import datetime
 from controller.ControladorPDF import ControladorPdf
+import plotly.graph_objects as go
+
 
 # Este archivo contiene las funcionalidades de la vista relacionado con la evaluación de las actas
 
@@ -11,7 +11,7 @@ def agregar_acta(st, controlador):
     st.title("Generación De Actas")
     col1, col2, col3, col9 = st.columns(4)
     col5, col6, col7, col8 = st.columns(4)
-    col10, col11 = st.columns(2)
+    # col10, col11 = st.columns(2)
     # Objeto que modelará el formulario
     info_acta_obj = InfoActa(controlador.criterios)
     info_acta_obj.fecha_acta = datetime.today().strftime('%Y-%m-%d')
@@ -27,8 +27,10 @@ def agregar_acta(st, controlador):
         info_acta_obj.codirector = st.text_input("Codirector", "N.A")
     with col7:
         info_acta_obj.jurado1 = st.text_input("Jurado #1")
+        info_acta_obj.jurado1EST = st.radio("El jurado 1 es interno o externo?", ('Interno', 'Externo'))
     with col8:
         info_acta_obj.jurado2 = st.text_input("Jurado #2")
+        info_acta_obj.jurado2EST = st.radio("El jurado 2 es interno o externo?", ('Interno', 'Externo'))
     with col9:
         info_acta_obj.fecha_presentacion = st.date_input("Ingrese fecha de la presentación")
 
@@ -134,7 +136,7 @@ def evaluar_criterios(st, controlador):
     enviado_califica = st.button("Enviar")
 
     for acta in controlador.actas:
-        #Actualiza el model con la informacion
+        # Actualiza el model con la informacion
         if acta.autor == opcion and enviado_califica:
             acta.nota_final = temp
             acta.estado = True
@@ -152,17 +154,76 @@ def evaluar_criterios(st, controlador):
 
 def exportar_acta(st, controlador):
     st.title("Generación de PDF")
-    nombre_autor = st.selectbox('Elija el autor ya calificado', [acta.autor for acta in controlador.actas if acta.estado])
+    nombre_autor = st.selectbox('Elija el autor ya calificado',
+                                [acta.autor for acta in controlador.actas if acta.estado])
 
     if nombre_autor:
-        #Fue seleccionado el autor
+        # Fue seleccionado el autor
         enviado_pdf = st.button("Generar PDF")
         if enviado_pdf:
             controlador_pdf = ControladorPdf()
-            controlador_pdf.exportar_acta(st,controlador, nombre_autor)
+            controlador_pdf.exportar_acta(st, controlador, nombre_autor)
             st.success("Acta generada en PDF exitosamente, consulte la carpeta de salida 'outputs'.")
     else:
         st.info("Seleccione El Estudiante.")
 
     if len(controlador.actas) == 0:
         st.warning("No Hay Ningún Estudiante Calificado Actualmente.")
+
+
+def ver_estadisticas(st, controlador):
+    st.title("Estadísticas")
+    col1, col2 = st.columns(2)
+    for acta in controlador.actas:
+        if acta.estado and not acta.visto:
+            if acta.tipo_trabajo == 'Aplicado':
+                controlador.numsProyectoAplicado += 1
+            else:
+                controlador.numsProyectoInves += 1
+            if acta.jurado1EST == 'Interno':
+                controlador.cantJuradosInt += 1
+            else:
+                controlador.cantJuradosExt += 1
+            if acta.jurado2EST == 'Interno':
+                controlador.cantJuradosInt += 1
+            else:
+                controlador.cantJuradosExt += 1
+            if acta.nota_final > 4.8:
+                controlador.proyectosMayor48 += 1
+            else:
+                controlador.proyectosMenor48 += 1
+            acta.visto = True
+    with col1:
+        st.write("**Proyectos de grado aplicados**")
+        st.write(f"Total:  {controlador.numsProyectoAplicado}")
+        st.write("**Proyectos de grado de investigación**")
+        st.write(f"Total:  {controlador.numsProyectoInves}")
+        st.write("**Proyectos de grado con nota mayor a 4.8**")
+        st.write(f"Total:  {controlador.proyectosMayor48}")
+    with col2:
+        st.write("**Cantidad de jurados externos**")
+        st.write(f"Total:  {controlador.cantJuradosExt}")
+        st.write("**Cantidad de jurados internos**")
+        st.write(f"Total:  {controlador.cantJuradosInt}")
+        st.write("**Proyectos de grado con nota menor a 4.8**")
+        st.write(f"Total:  {controlador.proyectosMenor48}")
+    if len(controlador.actas) != 0:
+        with st.container():
+            st.header("Gráfica de los datos")
+            st.subheader("**Tipo de proyecto de grado**")
+            stats1 = go.Figure(data=go.Bar(x=("Proyectos de grado aplicados", "Proyectos de grado de investigación"),
+                                           y=(controlador.numsProyectoAplicado, controlador.numsProyectoInves)))
+            st.write(stats1)
+
+            st.subheader("**Tipos de jurados**")
+            stats1 = go.Figure(data=go.Bar(x=("Cantidad de jurados externos", "Cantidad de jurados internos"),
+                                           y=(controlador.cantJuradosExt, controlador.cantJuradosInt)))
+            st.write(stats1)
+
+            st.subheader("**Notas de los proyectos**")
+            stats1 = go.Figure(data=go.Bar(x=("Proyectos de grado con nota mayor a 4.8", "Proyectos de grado con nota "
+                                                                                         "menor a 4.8"),
+                                           y=(controlador.proyectosMayor48, controlador.proyectosMenor48)))
+            st.write(stats1)
+    else:
+        st.info("No hay datos que mostrar")
